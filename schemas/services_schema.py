@@ -9,5 +9,8 @@ class service(BaseModel):
     description: str
     icon: str
     is_active: bool
+    short_description: str
+    price: str
+    features: list 
     #create_at
     #update_at

@@ -25,7 +25,10 @@ def createService(service_data: service, conn: Connection = Depends(get_connecti
         "slug": service_data.slug,
         "description": service_data.description,
         "icon": service_data.icon,
-        "is_active": service_data.is_active
+        "is_active": service_data.is_active,
+        "short_description": service_data.short_description,
+        "price": service_data.price,
+        "features": service_data.features
     }
     
     try:
