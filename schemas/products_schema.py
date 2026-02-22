@@ -3,7 +3,7 @@ from decimal import Decimal
 from pydantic import BaseModel
 from typing import Optional
 
-class product(BaseModel):
+class product_schema(BaseModel):
     name: str
     slug: str
     description: str
