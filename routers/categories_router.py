@@ -70,3 +70,21 @@ def updateCategory(idCategoria: int, category: category_schema, conn: Connection
     conn.commit()
     
     return {"message": "Categoría actualizada exitosamente"}
+
+# ---------------------------------------------------------------------------
+
+@category_router.delete("/categories/{idCategoria}")
+def deleteCategory(idCategoria: int, conn: Connection = Depends(get_connection)):
+    """Eliminar una categoría"""
+    result = conn.execute(
+        category_model.delete().where(category_model.c.id == idCategoria)
+    )
+    conn.commit()
+    
+    if result.rowcount == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Categoría no encontrada"
+        )
+    
+    return {"message": "Categoría eliminada exitosamente"}

@@ -90,3 +90,21 @@ def updateService(idServicio: int, service: service_schema, conn: Connection = D
     conn.commit()
     
     return {"message": "Servicio actualizado exitosamente"}
+
+# --------------------------------------------------------------------------------
+
+@service_router.delete("/services/{idServicio}")
+def deleteService(idServicio: int, conn: Connection = Depends(get_connection)):
+    """Eliminar un servicio"""
+    result = conn.execute(
+        service_model.delete().where(service_model.c.id == idServicio)
+    )
+    conn.commit()
+    
+    if result.rowcount == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Servicio no encontrado"
+        )
+    
+    return {"message": "Servicio eliminado exitosamente"}

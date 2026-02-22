@@ -76,3 +76,21 @@ def updateProduct(idProducto: int, product: product_schema, conn: Connection = D
     conn.commit()
     
     return {"message": "Producto actualizado exitosamente"}
+
+# -------------------------------------------------------------------------
+
+@product_router.delete("/products/{idProducto}")
+def deleteProduct(idProducto: int, conn: Connection = Depends(get_connection)):
+    """Eliminar un producto"""
+    result = conn.execute(
+        product_model.delete().where(product_model.c.id == idProducto)
+    )
+    conn.commit()
+    
+    if result.rowcount == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Producto no encontrado"
+        )
+    
+    return {"message": "Producto eliminado exitosamente"}
