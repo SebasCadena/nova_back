@@ -1,6 +1,9 @@
+from unicodedata import category
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from psycopg2 import IntegrityError
 from sqlalchemy.engine import Connection
+from auth.bearer import get_current_user
 from config.config import get_connection
 from models.categories_model import category_model
 from schemas.categories_schemas import category_schema
@@ -38,4 +41,32 @@ def createCategory(category_data: category_schema, conn: Connection = Depends(ge
         "message": "Categoría creada exitosamente",
         "idCategoria": new_id
     }
+
+
+# -------------------------------------------------------------------------
+
+@category_router.put("/categories/{idCategoria}")
+def updateCategory(idCategoria: int, category: category_schema, conn: Connection = Depends(get_connection)):
+    """Actualizar una categoría existente"""
+    # Verificar que la categoría existe
+    existing = conn.execute(
+        category_model.select().where(category_model.c.id == idCategoria)
+    ).first()
     
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Categoría no encontrada"
+        )
+    
+    updated_category = {
+        "name": category.name,
+        "slug": category.slug
+    }
+    
+    result = conn.execute(
+        category_model.update().where(category_model.c.id == idCategoria).values(updated_category)
+    )
+    conn.commit()
+    
+    return {"message": "Categoría actualizada exitosamente"}

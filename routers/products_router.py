@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.engine import Connection
 from config.config import get_connection
 from models.products_model import product_model
@@ -42,3 +42,37 @@ def createProduct(product_data: product_schema, conn: Connection = Depends(get_c
         "message": "Producto creado exitosamente",
         "idProducto": new_id
     }
+    
+    
+# ----------------------------------------------------------------------------
+
+@product_router.put("/products/{idProducto}")
+def updateProduct(idProducto: int, product: product_schema, conn: Connection = Depends(get_connection)):
+    """Actualizar un producto existente"""
+    # Verificar que el producto existe
+    existing = conn.execute(
+        product_model.select().where(product_model.c.id == idProducto)
+    ).first()
+    
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Producto no encontrado"
+        )
+    
+    updated_product = {
+        "name": product.name,
+        "slug": product.slug,
+        "description": product.description,
+        "price": product.price,
+        "image_url": product.image_url,
+        "category_id": product.category_id,
+        "is_active": product.is_active
+    }
+    
+    result = conn.execute(
+        product_model.update().where(product_model.c.id == idProducto).values(updated_product)
+    )
+    conn.commit()
+    
+    return {"message": "Producto actualizado exitosamente"}

@@ -55,3 +55,38 @@ def createService(service_data: service_schema, conn: Connection = Depends(get_c
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Error de integridad en los datos"
         )
+        
+        
+# ----------------------------------------------------------------------------
+
+@service_router.put("/services/{idServicio}")
+def updateService(idServicio: int, service: service_schema, conn: Connection = Depends(get_connection)):
+    """Actualizar un servicio existente"""
+    # Verificar que el servicio existe
+    existing = conn.execute(
+        service_model.select().where(service_model.c.id == idServicio)
+    ).first()
+    
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Servicio no encontrado"
+        )
+    
+    updated_service = {
+        "title": service.title,
+        "slug": service.slug,
+        "description": service.description,
+        "icon": service.icon,
+        "is_active": service.is_active,
+        "short_description": service.short_description,
+        "price": service.price,
+        "features": service.features
+    }
+    
+    result = conn.execute(
+        service_model.update().where(service_model.c.id == idServicio).values(updated_service)
+    )
+    conn.commit()
+    
+    return {"message": "Servicio actualizado exitosamente"}
