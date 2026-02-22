@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from config.config import get_connection
-from models.users_model import user
+from models.users_model import user_model
 from schemas.users_schema import User, Create_User
 
 from sqlalchemy.engine import Connection
@@ -27,7 +27,7 @@ class LoginRequest(BaseModel):
 def login(login_data: LoginRequest, conn: Connection = Depends(get_connection)):
     """Login que devuelve un token JWT"""
     result = conn.execute(
-        user.select().where(user.c.email == login_data.email)
+        user_model.select().where(user_model.c.email == login_data.email)
     ).first()
     
     if not result:
@@ -72,7 +72,7 @@ def createUser(user_data: Create_User, conn: Connection = Depends(get_connection
         "password": get_password_hash(user_data.password),  # 🔒 Hashear contrasena
         "role_id": user_data.role_id
     }
-    result = conn.execute(user.insert().values(new_user))
+    result = conn.execute(user_model.insert().values(new_user))
     conn.commit()
     return {"message": "Usuario creado exitosamente"}
 
@@ -81,5 +81,5 @@ def createUser(user_data: Create_User, conn: Connection = Depends(get_connection
 @user_router.get("/users")
 def getUsers(current_user: dict = Depends(get_current_user), conn: Connection = Depends(get_connection)):
     """Solo usuarios autenticados pueden ver la lista"""
-    result = conn.execute(user.select()).fetchall()
+    result = conn.execute(user_model.select()).fetchall()
     return [dict(row._mapping) for row in result]
