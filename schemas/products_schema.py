@@ -11,5 +11,6 @@ class product_schema(BaseModel):
     image_url: str
     category_id: int
     is_active: bool
+    stok: int
     #create_at
     #update_at
