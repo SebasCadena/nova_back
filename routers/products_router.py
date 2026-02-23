@@ -26,7 +26,8 @@ def createProduct(product_data: product_schema, conn: Connection = Depends(get_c
         "price": product_data.price,
         "image_url": product_data.image_url,
         "category_id": product_data.category_id,
-        "is_active": product_data.is_active
+        "is_active": product_data.is_active,
+        "stok": product_data.stok
     }
     
     
@@ -67,7 +68,8 @@ def updateProduct(idProducto: int, product: product_schema, conn: Connection = D
         "price": product.price,
         "image_url": product.image_url,
         "category_id": product.category_id,
-        "is_active": product.is_active
+        "is_active": product.is_active,
+        "stok": product.stok
     }
     
     result = conn.execute(
