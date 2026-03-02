@@ -206,6 +206,63 @@ Buenas prácticas:
 3. Migrar flujo transaccional (`cart`, `orders`, `payments`).
 4. Configurar Alembic con `Base.metadata` único y generar primera migración de control.
 
+
+## 13) Imports de modelos en Alembic (clave para autogenerate)
+
+En `alembic/env.py` no basta con importar `Base`.
+También debes importar cada modelo para que SQLAlchemy registre sus tablas en `Base.metadata`.
+
+Plantilla real de este proyecto:
+
+```python
+from models.base_model import Base
+from models.users_model import User
+from models.categories_model import Category
+from models.services_model import Service
+from models.products_model import Product
+from models.carritos_model import Cart
+from models.cart_items_model import CartItem
+from models.orders_model import Order
+from models.order_items_model import OrderItem
+from models.payments_model import Payment
+
+target_metadata = Base.metadata
+```
+
+Síntoma típico cuando falta este paso:
+
+- `alembic revision --autogenerate` crea una migración vacía o incompleta.
+
+Regla práctica:
+
+- Cada vez que crees un modelo nuevo, agrega su import en `alembic/env.py`.
+
+---
+
+## 14) Error real: `Can't locate revision identified by ...`
+
+Si aparece un error como:
+
+```text
+FAILED: Can't locate revision identified by 'ebfa3761a6d4'
+```
+
+significa que la BD tiene en `alembic_version` un hash viejo que ya no existe en `alembic/versions`.
+
+Solución segura en desarrollo:
+
+```bash
+.\venv\Scripts\alembic.exe stamp base --purge
+.\venv\Scripts\alembic.exe revision --autogenerate -m "baseline orm"
+```
+
+Luego:
+
+1. Revisar el archivo generado en `alembic/versions/`.
+2. Solo si está correcto, ejecutar `alembic upgrade head`.
+
+Nota: si la BD ya tiene tablas de producción, no ejecutes `upgrade head` sin revisar primero drops/alters sensibles.
+
 ---
 
 Si mantienes estas reglas, tendrás una base sólida para Neon + Render + Alembic sin deuda técnica de transición.
