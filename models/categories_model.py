@@ -22,6 +22,3 @@ class Category(Base):
 		server_default=text("CURRENT_TIMESTAMP"),
 		nullable=False,
 	)
-
-
-category_model = Category.__table__

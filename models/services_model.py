@@ -29,6 +29,3 @@ class Service(Base):
 	price: Mapped[str | None] = mapped_column(String(100), nullable=True)
 	short_description: Mapped[str | None] = mapped_column(String(500), nullable=True)
 	features: Mapped[dict | list | None] = mapped_column(JSONB, nullable=True)
-
-
-service_model = Service.__table__

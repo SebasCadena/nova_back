@@ -26,6 +26,3 @@ class Cart(Base):
 		server_default=text("CURRENT_TIMESTAMP"),
 		nullable=True,
 	)
-
-
-carrito_model = Cart.__table__

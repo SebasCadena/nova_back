@@ -32,6 +32,3 @@ class Product(Base):
 		nullable=False,
 	)
 	stok: Mapped[int | None] = mapped_column(Integer, nullable=True)
-
-
-product_model = Product.__table__

@@ -24,6 +24,3 @@ class Payment(Base):
 		server_default=text("CURRENT_TIMESTAMP"),
 		nullable=True,
 	)
-
-
-payment_model = Payment.__table__

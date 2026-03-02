@@ -22,6 +22,3 @@ class OrderItem(Base):
 	)
 	quantity: Mapped[int] = mapped_column(Integer, nullable=False)
 	price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-
-
-order_items_model = OrderItem.__table__

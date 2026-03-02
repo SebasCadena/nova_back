@@ -23,6 +23,3 @@ class Order(Base):
 		server_default=text("CURRENT_TIMESTAMP"),
 		nullable=True,
 	)
-
-
-order_model = Order.__table__

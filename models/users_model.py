@@ -18,6 +18,3 @@ class User(Base):
         server_default=text("CURRENT_TIMESTAMP"),
         nullable=True,
     )
-
-
-user_model = User.__table__

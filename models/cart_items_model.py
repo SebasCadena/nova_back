@@ -19,6 +19,3 @@ class CartItem(Base):
 		nullable=False,
 	)
 	quantity: Mapped[int] = mapped_column(Integer, server_default=text("1"), nullable=False)
-
-
-cart_items_model = CartItem.__table__
