@@ -1,90 +1,79 @@
-from unicodedata import category
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from psycopg2 import IntegrityError
-from sqlalchemy.engine import Connection
-from auth.bearer import get_current_user
-from config.config import get_connection
-from models.categories_model import category_model
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from config.config import get_db
+from models.categories_model import Category
 from schemas.categories_schemas import category_schema
 
 category_router = APIRouter()
 
+def _serialize_category(category: Category) -> dict:
+    return {
+        "id": category.id,
+        "name": category.name,
+        "slug": category.slug,
+        "created_at": category.created_at,
+        "updated_at": category.updated_at,
+    }
+
 @category_router.get("/categories")
-def getCategories(conn: Connection = Depends(get_connection)):
-    """Obtener todas las categorías"""
-    result = conn.execute(category_model.select()).fetchall()
-    return [dict(row._mapping) for row in result]
+def getCategories(db: Session = Depends(get_db)):
+    categories = db.query(Category).all()
+    return [_serialize_category(category) for category in categories]
+
+
+@category_router.get("/categories/{idCategoria}")
+def getCategoryById(idCategoria: int, db: Session = Depends(get_db)):
+    category = db.query(Category).filter(Category.id == idCategoria).first()
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoría no encontrada")
+    return _serialize_category(category)
 
 # ------------------------------------------------------------------
 
 @category_router.post("/categories", status_code=status.HTTP_201_CREATED)
-def createCategory(category_data: category_schema, conn: Connection = Depends(get_connection)):
-    """Crear una nueva categoría"""
-    
-    
-    new_category = {
-        "name": category_data.name,
-        "slug": category_data.slug,
-    }
-    
-    
-    # En PostgreSQL usamos RETURNING para obtener el ID generado
-    result = conn.execute(
-        category_model.insert().values(new_category).returning(category_model.c.id)
-    )
-        
-        # Obtener el ID de la categoría recién creada
-    new_id = result.fetchone()[0]
-        
-    return {
-        "message": "Categoría creada exitosamente",
-        "idCategoria": new_id
-    }
+def createCategory(category_data: category_schema, db: Session = Depends(get_db)):
+    new_category = Category(name=category_data.name, slug=category_data.slug)
+    db.add(new_category)
+    try:
+        db.commit()
+        db.refresh(new_category)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Nombre o slug ya existen")
+
+    return {"message": "Categoría creada exitosamente", "idCategoria": new_category.id}
 
 
 # -------------------------------------------------------------------------
 
 @category_router.put("/categories/{idCategoria}")
-def updateCategory(idCategoria: int, category: category_schema, conn: Connection = Depends(get_connection)):
-    """Actualizar una categoría existente"""
-    # Verificar que la categoría existe
-    existing = conn.execute(
-        category_model.select().where(category_model.c.id == idCategoria)
-    ).first()
-    
-    if not existing:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Categoría no encontrada"
-        )
-    
-    updated_category = {
-        "name": category.name,
-        "slug": category.slug
-    }
-    
-    result = conn.execute(
-        category_model.update().where(category_model.c.id == idCategoria).values(updated_category)
-    )
-    conn.commit()
-    
-    return {"message": "Categoría actualizada exitosamente"}
+def updateCategory(idCategoria: int, category_data: category_schema, db: Session = Depends(get_db)):
+    category = db.query(Category).filter(Category.id == idCategoria).first()
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoría no encontrada")
+
+    category.name = category_data.name
+    category.slug = category_data.slug
+    try:
+        db.commit()
+        db.refresh(category)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Nombre o slug ya existen")
+
+    return {"message": "Categoría actualizada exitosamente", "category": _serialize_category(category)}
 
 # ---------------------------------------------------------------------------
 
 @category_router.delete("/categories/{idCategoria}")
-def deleteCategory(idCategoria: int, conn: Connection = Depends(get_connection)):
-    """Eliminar una categoría"""
-    result = conn.execute(
-        category_model.delete().where(category_model.c.id == idCategoria)
-    )
-    conn.commit()
-    
-    if result.rowcount == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Categoría no encontrada"
-        )
-    
+def deleteCategory(idCategoria: int, db: Session = Depends(get_db)):
+    category = db.query(Category).filter(Category.id == idCategoria).first()
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoría no encontrada")
+
+    db.delete(category)
+    db.commit()
+
     return {"message": "Categoría eliminada exitosamente"}

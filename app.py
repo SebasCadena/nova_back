@@ -5,6 +5,11 @@ from routers.users_router import user_router
 from routers.categories_router import category_router
 from routers.services_router import service_router
 from routers.products_router import product_router
+from routers.carritos_router import carrito_router
+from routers.cart_items_router import cart_items_router
+from routers.orders_router import order_router
+from routers.order_items_router import order_items_router
+from routers.payments_router import payment_router
 
 app = FastAPI()
 
@@ -20,6 +25,11 @@ app.include_router(service_router)
 app.include_router(category_router)
 app.include_router(product_router)
 app.include_router(user_router)
+app.include_router(carrito_router)
+app.include_router(cart_items_router)
+app.include_router(order_router)
+app.include_router(order_items_router)
+app.include_router(payment_router)
 
 @app.get("/")
 def read_root():
