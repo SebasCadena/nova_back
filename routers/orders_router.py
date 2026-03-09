@@ -63,7 +63,6 @@ def updateOrder(idOrder: int, order_data: order_schema, db: Session = Depends(ge
     order.user_id = order_data.user_id
     order.status = order_data.status
     order.total = order_data.total
-    order.created_at = order_data.created_at
 
     try:
         db.commit()

@@ -12,6 +12,7 @@ from auth.auth import (
     verify_password,
 )
 from auth.bearer import get_current_user
+from auth.roles import require_admin
 from config.config import get_db
 from models.users_model import User
 from schemas.users_schema import Create_User
@@ -72,7 +73,6 @@ def createUser(user_data: Create_User, db: Session = Depends(get_db)):
         name=user_data.name,
         email=user_data.email,
         password=get_password_hash(user_data.password),
-        role_id=user_data.role_id,
     )
     db.add(new_user)
     try:
@@ -92,8 +92,8 @@ def createUser(user_data: Create_User, db: Session = Depends(get_db)):
 
 
 
-@user_router.get("/users")
-def getUsers(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+@user_router.get("/users", dependencies=[Depends(require_admin)])
+def getUsers(db: Session = Depends(get_db)):
     """Lista usuarios (read-only -> sin commit)."""
     users = db.query(User).all()
     return [_serialize_user(user) for user in users]

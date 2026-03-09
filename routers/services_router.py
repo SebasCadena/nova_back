@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from auth.roles import require_admin
 from config.config import get_db
 from models.services_model import Service
 from schemas.services_schema import service_schema
@@ -38,7 +39,7 @@ def getServiceById(idServicio: int, db: Session = Depends(get_db)):
 
 # -----------------------------------------------------------------------
 
-@service_router.post("/services", status_code=status.HTTP_201_CREATED)
+@service_router.post("/services", status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
 def createService(service_data: service_schema, db: Session = Depends(get_db)):
     new_service = Service(
         title=service_data.title,
@@ -64,7 +65,7 @@ def createService(service_data: service_schema, db: Session = Depends(get_db)):
         
 # ----------------------------------------------------------------------------
 
-@service_router.put("/services/{idServicio}")
+@service_router.put("/services/{idServicio}", dependencies=[Depends(require_admin)])
 def updateService(idServicio: int, service_data: service_schema, db: Session = Depends(get_db)):
     service = db.query(Service).filter(Service.id == idServicio).first()
     if service is None:
@@ -90,7 +91,7 @@ def updateService(idServicio: int, service_data: service_schema, db: Session = D
 
 # --------------------------------------------------------------------------------
 
-@service_router.delete("/services/{idServicio}")
+@service_router.delete("/services/{idServicio}", dependencies=[Depends(require_admin)])
 def deleteService(idServicio: int, db: Session = Depends(get_db)):
     service = db.query(Service).filter(Service.id == idServicio).first()
     if service is None:

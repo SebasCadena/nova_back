@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from auth.roles import require_admin
 from config.config import get_db
 from models.categories_model import Category
 from schemas.categories_schemas import category_schema
@@ -32,7 +33,7 @@ def getCategoryById(idCategoria: int, db: Session = Depends(get_db)):
 
 # ------------------------------------------------------------------
 
-@category_router.post("/categories", status_code=status.HTTP_201_CREATED)
+@category_router.post("/categories", status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
 def createCategory(category_data: category_schema, db: Session = Depends(get_db)):
     new_category = Category(name=category_data.name, slug=category_data.slug)
     db.add(new_category)
@@ -48,7 +49,7 @@ def createCategory(category_data: category_schema, db: Session = Depends(get_db)
 
 # -------------------------------------------------------------------------
 
-@category_router.put("/categories/{idCategoria}")
+@category_router.put("/categories/{idCategoria}", dependencies=[Depends(require_admin)])
 def updateCategory(idCategoria: int, category_data: category_schema, db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == idCategoria).first()
     if category is None:
@@ -67,7 +68,7 @@ def updateCategory(idCategoria: int, category_data: category_schema, db: Session
 
 # ---------------------------------------------------------------------------
 
-@category_router.delete("/categories/{idCategoria}")
+@category_router.delete("/categories/{idCategoria}", dependencies=[Depends(require_admin)])
 def deleteCategory(idCategoria: int, db: Session = Depends(get_db)):
     category = db.query(Category).filter(Category.id == idCategoria).first()
     if category is None:

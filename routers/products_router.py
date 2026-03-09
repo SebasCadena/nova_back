@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from auth.roles import require_admin
 from config.config import get_db
 from models.products_model import Product
 from schemas.products_schema import product_schema
@@ -38,7 +39,7 @@ def getProductById(idProducto: int, db: Session = Depends(get_db)):
 
 # ------------------------------------------------------------------
 
-@product_router.post("/products", status_code=status.HTTP_201_CREATED)
+@product_router.post("/products", status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_admin)])
 def createProduct(product_data: product_schema, db: Session = Depends(get_db)):
     new_product = Product(
         name=product_data.name,
@@ -64,7 +65,7 @@ def createProduct(product_data: product_schema, db: Session = Depends(get_db)):
     
 # ----------------------------------------------------------------------------
 
-@product_router.put("/products/{idProducto}")
+@product_router.put("/products/{idProducto}", dependencies=[Depends(require_admin)])
 def updateProduct(idProducto: int, product_data: product_schema, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == idProducto).first()
     if product is None:
@@ -90,7 +91,7 @@ def updateProduct(idProducto: int, product_data: product_schema, db: Session = D
 
 # -------------------------------------------------------------------------
 
-@product_router.delete("/products/{idProducto}")
+@product_router.delete("/products/{idProducto}", dependencies=[Depends(require_admin)])
 def deleteProduct(idProducto: int, db: Session = Depends(get_db)):
     product = db.query(Product).filter(Product.id == idProducto).first()
     if product is None:

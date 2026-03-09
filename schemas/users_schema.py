@@ -5,7 +5,6 @@ class Create_User(BaseModel):
     name: str
     email: str
     password: str
-    role_id: int
 
     @field_validator('password')
     @classmethod

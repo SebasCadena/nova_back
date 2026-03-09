@@ -39,7 +39,6 @@ def createPayment(payment_data: payment_schema, db: Session = Depends(get_db)):
         provider=payment_data.provider,
         status=payment_data.status,
         amount=payment_data.amount,
-        created_at=payment_data.created_at,
     )
     db.add(new_payment)
 
@@ -66,7 +65,6 @@ def updatePayment(idPayment: int, payment_data: payment_schema, db: Session = De
     payment.provider = payment_data.provider
     payment.status = payment_data.status
     payment.amount = payment_data.amount
-    payment.created_at = payment_data.created_at
 
     try:
         db.commit()
